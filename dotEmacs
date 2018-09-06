@@ -1,0 +1,412 @@
+;; .emacs
+;; git rev-parse origin/master ---- gets the sha1 for the remote branch
+(defun toggle-before-save-hook ()
+  "switches before-save-hook from nil to delete-trailing-whitespace and vice versa"
+  (interactive)
+  (if (eq before-save-hook nil)
+      (progn (add-hook 'before-save-hook #'delete-trailing-whitespace) (message "setting before-save-hook to delete whitespace"))
+      (progn (setq before-save-hook nil) (message "Setting before-save-hook to nil."))
+    )
+  )
+
+(tool-bar-mode -1)
+(toggle-before-save-hook)
+
+;;  "cscope-indexer -r" to generate cscope data files.... Like to have this in
+;;  a macro so I can just re-generate it while in emacs
+(defun spawn-shell (name)
+  "Invoke shell test"
+  (interactive "MName of shell buffer to create: ")
+  (pop-to-buffer (get-buffer-create (generate-new-buffer-name name)))
+  (shell (current-buffer))
+;;  (process-send-string nil "echo 'test1'\n")
+;;  (process-send-string nil "echo 'test2'\n")
+)
+
+(defun say-word (word)
+  (interactive (list
+                (read-string (format "word (%s): " (thing-at-point 'word))
+                             nil nil (thing-at-point 'word))))
+  (message "The word is %s" word)
+)
+
+;;; uncomment this line to disable loading of "default.el" at startup
+;; (setq inhibit-default-init t)
+
+;; turn on font-lock mode
+(global-font-lock-mode t)
+
+;; enable visual feedback on selections
+(setq transient-mark-mode t)
+
+;; For Data Gravity
+;;(setq c-default-style "linux" c-basic-offset 4)
+
+;; I prefer the following
+(setq c-default-style "k&r" c-basic-offset 4)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(auto-revert-interval 2)
+ '(auto-revert-verbose nil)
+ '(exec-path
+   (quote
+	("//Users/cramermb/bin" "/usr/bin" "/bin" "/usr/sbin" "/usr/local/bin" "/sbin" "/Applications/Emacs.app/Contents/MacOS/bin-x86_64-10_9" "/Applications/Emacs.app/Contents/MacOS/libexec-x86_64-10_9" "/Applications/Emacs.app/Contents/MacOS/libexec" "/Applications/Emacs.app/Contents/MacOS/bin")))
+ '(gdb-many-windows t)
+ '(indent-tabs-mode t)
+ '(show-paren-mode t)
+ '(tool-bar-mode nil))
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:inherit nil :stipple nil :background "black" :foreground "white" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :width normal :foundry "bitstream" :family "Courier 10 Pitch" :height 87))))
+ '(ediff-even-diff-face-Ancestor ((((class color)) (:background "white" :foreground "black"))))
+ '(ediff-even-diff-face-B ((((class color)) (:background "white" :foreground "black"))))
+ '(ediff-odd-diff-face-A ((((class color)) (:background "white" :foreground "black"))))
+ '(ediff-odd-diff-face-C ((((class color)) (:background "white" :foreground "black"))))
+ '(term-color-blue ((t (:background "blue2" :foreground "deep sky blue")))))
+
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+(setq  ediff-split-window-function 'split-window-horizontally)
+
+    (defun match-paren (arg)
+      "Go to the matching paren if on a paren; otherwise insert %."
+      (interactive "p")
+      (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+            ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+            (t (self-insert-command (or arg 1)))))
+
+(setq mystring '"mystring2")
+
+(setq frame-title-format "%b")
+
+
+(setq default-tab-width 4)
+
+(setq default-frame-alist
+      '((cursor-color . "white")) )
+
+(setq set-cursor-color 'green)
+
+;; (setq load-path (append load-path '("/usr/local/share/emacs/site-lisp")))
+
+
+(add-to-list 'load-path "~/.emacs.d/lisp/")
+;;(call-interactively 'load-library)
+(load-library "simple-gits")
+(setq git-do-push-on-commit t)
+(require 'git-blame)
+(require 'xcscope)
+(defun my-cscope-init()
+  "deletes the cscope.out and cscope.files in the current directory and regenerates the cscope.files."
+  (interactive)
+  (let ((csc-files "cscope.files")
+        (csc-out "cscope.out"))
+    (if (file-regular-p csc-files) (delete-file csc-files))
+    (if (file-regular-p csc-out) (delete-file csc-out))
+	(call-process-shell-command "find . -type f '(' -name '*.cpp' -o -name '*.cxx' -o -name '*.h' ')'  >> cscope.files")))
+
+
+(defun exp-cscope-init()
+  "deletes the cscope.out and cscope.files in the current directory and regenerates the cscope.files."
+  (interactive)
+  (let ((csc-files "cscope.files")
+        (csc-out "cscope.out"))
+    (if (file-regular-p csc-files) (delete-file csc-files))
+    (if (file-regular-p csc-out) (delete-file csc-out))
+	(call-process-shell-command "~/bin/solo-cscope  > cscope.files")))
+
+
+
+(add-hook 'git-pull-hook 'my-cscope-init)
+
+
+(defvar my-auto-save-folder "~/.emacs.d/autosaves/")                  ; folder for auto-saves
+(setq auto-save-list-file-prefix "~/.emacs.d/autosaves/.saves-")      ; set prefix for auto-saves
+(setq auto-save-file-name-transforms `((".*" ,my-auto-save-folder t))); location for all auto-save files
+
+(setq
+;;   backup-by-copying t      ; don't clobber symlinks
+   backup-directory-alist
+    '(("." . "~/.saves"))    ; don't litter my fs tree
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)       ; use versioned backups
+
+
+;; Thius is the original version of the copy-line I hacked below.
+;;(defun copy-line (arg)
+      ;;"Copy lines (as many as prefix argument) in the kill ring"
+      ;;(interactive "p")
+      ;;(kill-ring-save (line-beginning-position)
+      ;;                (line-beginning-position (+ 1 arg)))
+      ;;(message "%d line%s copied" arg (if (= 1 arg) "" "s")))
+
+
+
+;;  My hack from from the commented out copy-line above
+;; Mine doesn't copy the newline at the end of a line (just like C-k)
+;; However, I might (almost certainly) have broken the argument...
+;; It wasn't clear to me how to use the argument anyway.
+(defun copy-line (arg)
+      "Copy lines (as many as prefix argument) in the kill ring"
+      (interactive "p")
+      (= 1 arg)
+      (kill-ring-save (line-beginning-position) (line-end-position) )
+      (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
+
+(defun show-fkey-mapping()
+  "Show the function key mappings"
+  (interactive)
+  (with-output-to-temp-buffer "*Function Key Mapping*"
+    (princ "f1  --- ") (princ (lookup-key (current-global-map) [f1] )) (princ "\n")
+    (princ "f2  --- ") (princ (lookup-key (current-global-map) [f2] )) (princ "\n")
+    (princ "f3  --- ") (princ (lookup-key (current-global-map) [f3] )) (princ "\n")
+    (princ "f4  --- ") (princ (lookup-key (current-global-map) [f4] )) (princ "\n")
+    (princ "f5  --- ") (princ (lookup-key (current-global-map) [f5] )) (princ "\n")
+    (princ "f6  --- ") (princ (lookup-key (current-global-map) [f6] )) (princ "\n")
+    (princ "f7  --- ") (princ (lookup-key (current-global-map) [f7] )) (princ "\n")
+    (princ "f8  --- ") (princ (lookup-key (current-global-map) [f8] )) (princ "\n")
+    (princ "f9  --- ") (princ (lookup-key (current-global-map) [f9] )) (princ "\n")
+    (princ "f10 --- ") (princ (lookup-key (current-global-map) [f10] )) (princ "\n")
+    (princ "f11 --- ") (princ (lookup-key (current-global-map) [f11] )) (princ "\n")
+    (princ "f12 --- ") (princ (lookup-key (current-global-map) [f12] )) (princ "\n")
+    )
+)
+
+(defun switch-to-git-status()
+  "switch to the git status buffer"
+  (interactive)
+  (if (get-buffer "*git-status*")
+      (switch-to-buffer (get-buffer "*git-status*"))
+      (call-interactively 'git-status )))
+
+(show-paren-mode 1)
+;;(setq backup-by-copying-when-linked 't)
+
+(if (string= "xterm" (getenv "TERM"))
+    (global-set-key (kbd "C-0") 'match-paren)
+    (global-set-key "\M-0"  'match-paren)
+	)
+
+(defun TermToggleInputMode ()
+  "Toggles between character and line mode"
+  (interactive)
+  (if (term-in-line-mode)
+	  (term-char-mode)
+	  (if (term-in-char-mode) (term-line-mode))))
+
+(add-hook 'term-mode-hook
+    (lambda ()
+	  (local-set-key "\C-c\C-j" 'TermToggleInputMode)
+;; need to figure out why these don't work for term
+;; 	  (local-set-key (kbd "\C-up")     nil) (local-set-key (kbd "\C-up")   'term-previous-input)
+;;      (local-set-key (kbd "\C-down")   nil) (local-set-key (kbd "\C-down") 'term-next-input)
+;;
+	  ))
+
+
+(defun TermWrapper()
+  "to keep term from always prompting for exe"
+  (interactive)
+  (if (get-buffer "*terminal*") (switch-to-buffer "*terminal*") (term "/usr/bin/bash")))
+
+;; moving between windows
+(global-set-key (kbd "C-3") (lambda () (interactive) (other-window 3)))
+(global-set-key (kbd "C-2") (lambda () (interactive) (other-window 2)))
+(global-set-key (kbd "C-1") 'other-window)
+(global-set-key (kbd "C-0") (lambda () (interactive) (other-window -1)))
+
+
+(global-set-key "\C-c\C-k" 'copy-line)
+
+(global-set-key (kbd "M-j") 'join-line)
+
+(global-set-key "\C-c\C-r" 'copy-region-as-kill)
+
+(global-set-key [f1]  'show-fkey-mapping)
+(global-set-key [f2]  'man)
+(global-set-key [f3]  'TermWrapper)
+;;(global-set-key [f4]  'set-frame-name)
+(global-set-key [f4]  'cscope-find-this-symbol)
+(global-set-key [f5]  'switch-to-git-status)
+(global-set-key [f6] 'MyPush)
+;;(global-set-key [f6]  'auto-revert-mode)
+;;(global-set-key [f7]  'linum-mode)
+(global-set-key [f7]  'MyPop)
+(global-set-key [f8]  'toggle-window-split)
+(global-set-key [f9]  'comint-previous-input)
+(global-set-key [f10] 'comint-next-input)
+
+
+;; The set-key calls below were suggested by the xcscope man page
+;; preserved here for posterity
+;;(define-key global-map [(ctrl f3)] 'cscope-set-initial-directory)
+;;(define-key global-map [(ctrl f4)] 'cscope-unset-initial-directory)
+;;(define-key global-map [(ctrl f5)] 'cscope-find-this-symbol)
+;;(define-key global-map [(ctrl f6)] 'cscope-find-global-definition)
+;;(define-key global-map [(ctrl f7)] 'cscope-find-global-definition-no-prompting)
+;;(define-key global-map [(ctrl f8)] 'cscope-pop-mark)
+;;(define-key global-map [(ctrl f9)] 'cscope-next-symbol)
+;;(define-key global-map [(ctrl f10)] 'cscope-next-file)
+;;(define-key global-map [(ctrl f11)] 'cscope-prev-symbol)
+;;(define-key global-map [(ctrl f12)] 'cscope-prev-file)
+;;(define-key global-map [(meta f9)] 'cscope-display-buffer)
+;;(define-key global-map [(meta f10)] 'cscope-display-buffer-toggle)
+
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+	     (next-win-buffer (window-buffer (next-window)))
+	     (this-win-edges (window-edges (selected-window)))
+	     (next-win-edges (window-edges (next-window)))
+	     (this-win-2nd (not (and (<= (car this-win-edges)
+					 (car next-win-edges))
+				     (<= (cadr this-win-edges)
+					 (cadr next-win-edges)))))
+	     (splitter
+	      (if (= (car this-win-edges)
+		     (car (window-edges (next-window))))
+		  'split-window-horizontally
+		'split-window-vertically)))
+	(delete-other-windows)
+	(let ((first-win (selected-window)))
+	  (funcall splitter)
+	  (if this-win-2nd (other-window 1))
+	  (set-window-buffer (selected-window) this-win-buffer)
+	  (set-window-buffer (next-window) next-win-buffer)
+	  (select-window first-win)
+	  (if this-win-2nd (other-window 1))))))
+
+(call-interactively  'set-frame-name)
+
+(defun loadCMakeMode ()
+  "loads the lisp .el file for ccmake mode"
+  (interactive)
+  (setq load-path (cons (expand-file-name "/usr/share/emacs/site-lisp/cmake/") load-path))
+  (require 'cmake-mode)
+  (setq auto-mode-alist
+        (append '(("CMakeLists\\.txt\\'" . cmake-mode)
+                  ("\\.cmake\\'" . cmake-mode))
+                auto-mode-alist)))
+
+(defun ccmake ()
+  "runs ccmake in term mode"
+  (interactive)
+  (make-term "CCMAKE" "~/.emacs.d/ShellScripts/InvokeCcmake")
+  (set-buffer (make-term "CCMAKE" "~/.emacs.d/ShellScripts/InvokeCcmake"))
+  (term-mode)
+  (term-char-mode)
+  (switch-to-buffer "*CCMAKE*"))
+
+;; start hacks grabbed from the web for c++ keywords...
+(global-font-lock-mode t)
+(setq font-lock-maximum-decoration t)
+
+(add-hook 'c++-mode-hook
+      '(lambda()
+        (font-lock-add-keywords
+         nil '(;; complete some fundamental keywords
+           ;; add the new C++11 keywords
+		   ("\\<\\(alignof\\|alignas\\|asm\\|noexcept\\|thread_local\\constexpr\\|decltype\\|noexcept\\|nullptr\\|static_assert\\|thread_local\\|override\\|final\\)\\>" . font-lock-keyword-face)
+           ;; hexadecimal numbers
+           ("\\<0[xX][0-9A-Fa-f]+\\>" . font-lock-constant-face)
+           ;; integer/float/scientific numbers
+           ("\\<[\\-+]*[0-9]*\\.?[0-9]+\\([ulUL]+\\|[eE][\\-+]?[0-9]+\\)?\\>" . font-lock-constant-face)
+           ))
+        ) t)
+
+
+;; end   hacks grabbed from the web for c++ keywords...
+;; My c++ browser macros
+(setq MyStack (list))
+
+(defun MyPush ()
+	"Pushes the current buffer/line number for use later"
+  (interactive)
+  (push (MyCurPos) MyStack)
+  (MyPrintStackPos "Pushed> " (first MyStack)))
+
+(defun MyPop ()
+  "Pops the last saved position"
+  (interactive)
+  (let ((top (pop MyStack))
+		(bufname)
+		(window))
+	(setq bufname (nth 0 top))
+	(setq window  (get-buffer-window bufname))
+	(if window (select-window window) (switch-to-buffer bufname))
+	(MyPrintStackPos "Popped> " top)
+	(goto-char (nth 3 top))
+
+	)
+  )
+
+(defun MyGetFuncName ()
+  "Returns the name of the current function as defined by c-beginning-of-defun."
+  (interactive)
+  (c-save-buffer-state (name saved-pos)
+	(setq saved-pos (point))
+	(c-beginning-of-defun)
+	;; c-beginning-of-defun seems to move to the type declaration of the function
+	;; If it ever happens, strip out comments.  don't think it happens much
+	(setq name (buffer-substring-no-properties (point) (1- (search-forward "(")))  )
+	(goto-char saved-pos)
+	(replace-regexp-in-string "\n" " " name)
+	))
+
+(defun MyGetStackPosString(prefix element)
+  "returns string with all the entries for the stack element"
+  (concat prefix
+		  (nth 0 element)
+		  ":"
+		  (number-to-string (nth 2 element))
+		  "  "
+		  (nth 1 element)
+		  "()")
+  )
+
+(defun MyPrintStackPos (prefix element)
+  ""
+  (message (MyGetStackPosString prefix element)))
+
+(defun MyPrint ()
+  "Interactive function to print MyStack"
+  (interactive)
+  (let ((stack-str (MyGetStackPosString "" (MyCurPos))))
+	(dolist (element MyStack )
+	  (setq stack-str (concat  stack-str "\n"  (MyGetStackPosString "" element)) ))
+	(message stack-str)))
+
+
+(defun MyCurPos ()
+  "returns a list describing current pos"
+  (list (buffer-name) (MyGetFuncName) (line-number-at-pos) (point)))
+
+(defun YankAndIndent ()
+  "Yanks the current kill buffer and indents the yanked region"
+  (interactive)
+
+  (let ((start (point))
+		(end   (point)))
+	(yank)
+	(setq end (point))
+	(indent-region start end)
+	(message "Yanked!!")
+	))
+
+;; c and c++ overrides
+(defun MyC-ModeConfigHook ()
+  "hook to define my c/C++ key mappings"
+  (local-set-key (kbd "C-y") 'YankAndIndent))
+
+(add-hook 'c++-mode-hook 'MyC-ModeConfigHook)
+(add-hook 'c-mode-hook 'MyC-ModeConfigHook)

@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+if [ "$1" = "" ]
+then
+	read -e -i `pwd` -p "enter dir:  " d
+else
+	d=$1
+fi
+
+if [ -d $d ]
+then
+	echo ccmake $d....
+	ccmake $d
+else
+   echo "$0:  $d does NOT exist"
+fi
