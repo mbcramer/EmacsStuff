@@ -1,0 +1,3 @@
+cp -i dotEmacs ~/.emacs
+mkdir -p ~/.emacs.d
+cp -ri dotEmacs.d/* ~/.emacs.d
