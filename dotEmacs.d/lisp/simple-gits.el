@@ -925,8 +925,9 @@ The FILES list must be sorted."
         (merge-heads (git-get-merge-heads)))
 	(git-set-ref-vars)
     (ewoc-set-hf status
-         (format "Directory:\t%s\nBranch:\t\t%s\nHead:\t\t%s%s\nStatus:\t\t%s\nStashes:\t%s\n"
+         (format "Directory:\t%s\nURL:\t%sBranch:\t\t%s\nHead:\t\t%s%s\nStatus:\t\t%s\nStashes:\t%s\n"
                  default-directory
+				 (git-call-process-string "config" "--get" "remote.origin.url")
                  (if branch branch "none (detached HEAD)")
                  head
                  (if merge-heads
