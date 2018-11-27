@@ -2181,7 +2181,7 @@ Returns a string showing the status of the current sandbox to the remote reposit
 
 ;;			(message (concat "mbc:" results ":" branch-ref ":"))
 			(when (= cnt 2)
-			  (setq results (apply 'git-call-process-string  "fetch" "origin" refs "--dry-run" "-v" () ))
+			  (setq results (apply 'git-call-process-string  "fetch" "--no-tags" "origin" refs "--dry-run" "-v" () ))
 			  (if (eq results nil)
 				(setq statusRv  UnavailSt) ;; true case
 			    (let (  (mylist ()) ) ;; false case
