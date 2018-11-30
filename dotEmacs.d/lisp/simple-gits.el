@@ -1632,8 +1632,8 @@ amended version of it."
   "set the global vars git-local-branch-ref and git-remote-branch-ref"
   (let ((resultList (split-string (apply 'git-call-process-string "show-ref" git-current-branch ()))))
 	(dolist (line resultList)
-	  (when (string-match-p (regexp-quote "refs/heads") line) (setq git-local-branch-ref line)  )
-  	  (when (string-match-p (regexp-quote "refs/remotes/origin") line) (setq git-remote-branch-ref line)))))
+	  (when (string-match-p (regexp-quote (concat "refs/heads/" git-current-branch)) line) (setq git-local-branch-ref line)  )
+  	  (when (string-match-p (regexp-quote (concat "refs/remotes/origin/" git-current-branch)) line) (setq git-remote-branch-ref line)))))
 
 (defun git-set-current-branch ()
   ""
